@@ -2,7 +2,7 @@ import * as THREE from
 "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js";
 
 
-import { World } from "./World.js";
+import { World } from "./world/World.js";
 
 import { Player } from "./Player.js";
 
