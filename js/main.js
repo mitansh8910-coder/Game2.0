@@ -10,10 +10,12 @@ import { ZombieManager } from "./ZombieManager.js";
 
 import { WaveManager } from "./WaveManager.js";
 
+import { HUD } from "./HUD.js";
+
 
 
 /*==================================================
-    SCENE SETUP
+    SCENE
 ==================================================*/
 
 
@@ -25,14 +27,13 @@ scene.background = new THREE.Color(
 );
 
 
-
 scene.fog = new THREE.Fog(
 
     0x87CEEB,
 
     100,
 
-    600
+    500
 
 );
 
@@ -71,7 +72,6 @@ const renderer = new THREE.WebGLRenderer({
 });
 
 
-
 renderer.setSize(
 
     window.innerWidth,
@@ -81,8 +81,7 @@ renderer.setSize(
 );
 
 
-
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled=true;
 
 
 
@@ -104,7 +103,6 @@ const world = new World(
     scene
 
 );
-
 
 
 world.generate();
@@ -162,7 +160,18 @@ zombieManager.connectWaveManager(
 
 
 
-waveManager.start();
+/*==================================================
+    HUD
+==================================================*/
+
+
+const hud = new HUD();
+
+
+hud.createHealthBar();
+
+
+hud.createCrosshair();
 
 
 
@@ -173,6 +182,56 @@ waveManager.start();
 
 const clock = new THREE.Clock();
 
+/*==================================================
+    LIGHTS
+==================================================*/
+
+
+const ambientLight = new THREE.AmbientLight(
+
+    0xffffff,
+
+    0.6
+
+);
+
+
+scene.add(
+
+    ambientLight
+
+);
+
+
+
+const sun = new THREE.DirectionalLight(
+
+    0xffffff,
+
+    1
+
+);
+
+
+sun.position.set(
+
+    100,
+
+    200,
+
+    100
+
+);
+
+
+sun.castShadow=true;
+
+
+scene.add(
+
+    sun
+
+);
 
 
 
@@ -189,10 +248,10 @@ window.addEventListener(
 
     "keydown",
 
-    (event)=>{
+    e=>{
 
 
-        keys[event.code]=true;
+        keys[e.code]=true;
 
 
     }
@@ -205,21 +264,16 @@ window.addEventListener(
 
     "keyup",
 
-    (event)=>{
+    e=>{
 
 
-        keys[event.code]=false;
+        keys[e.code]=false;
 
 
     }
 
 );
 
-
-
-/*==================================================
-    MOUSE CONTROL
-==================================================*/
 
 
 document.body.addEventListener(
@@ -239,7 +293,7 @@ document.body.addEventListener(
 
 
 /*==================================================
-    WINDOW RESIZE
+    RESIZE
 ==================================================*/
 
 
@@ -278,7 +332,16 @@ window.addEventListener(
 
 
 /*==================================================
-    PLAYER INPUT UPDATE
+    START WAVE
+==================================================*/
+
+
+waveManager.start();
+
+
+
+/*==================================================
+    INPUT HANDLER
 ==================================================*/
 
 
@@ -286,7 +349,7 @@ function updateInput(){
 
 
 
-    const direction = {
+    player.handleInput({
 
 
 
@@ -326,15 +389,75 @@ function updateInput(){
 
 
 
-    };
+    });
+
+
+}
+
+/*==================================================
+    ZOMBIE SPAWNING
+==================================================*/
+
+
+function updateSpawning(){
 
 
 
-    player.handleInput(
+    if(
 
-        direction
+        waveManager.remainingToSpawn > 0
 
-    );
+    ){
+
+
+
+        const stats = {
+
+
+
+            health:
+
+            waveManager.zombieHealthMultiplier,
+
+
+
+            damage:
+
+            waveManager.zombieDamageMultiplier,
+
+
+
+            speed:
+
+            waveManager.zombieSpeedMultiplier
+
+
+
+        };
+
+
+
+        zombieManager.spawnAroundPlayer(
+
+            player,
+
+            1,
+
+            stats
+
+        );
+
+
+
+        waveManager.remainingToSpawn--;
+
+
+        waveManager.totalZombies++;
+
+
+
+    }
+
 
 
 }
@@ -342,11 +465,102 @@ function updateInput(){
 
 
 /*==================================================
-    ZOMBIE SPAWN CONTROL
+    UPDATE HUD
 ==================================================*/
 
 
-function updateWaves(delta){
+function updateHUD(){
+
+
+
+    const info =
+
+        waveManager.getWaveInfo();
+
+
+
+    hud.update({
+
+
+
+        health:
+
+        player.health,
+
+
+
+        wave:
+
+        info.wave,
+
+
+
+        zombies:
+
+        zombieManager.getAliveCount(),
+
+
+
+        ammo:
+
+        player.weapon
+
+        ?
+
+        player.weapon.ammo
+
+        :
+
+        0,
+
+
+
+        countdown:
+
+        info.countdown,
+
+
+
+        coins:
+
+        waveManager.rewardCoins
+
+
+
+    });
+
+
+
+    hud.updateHealthBar(
+
+
+
+        player.health /
+
+        player.maxHealth *
+
+        100
+
+
+
+    );
+
+
+
+}
+
+
+
+/*==================================================
+    GAME UPDATE
+==================================================*/
+
+
+function updateGame(delta){
+
+
+
+    updateInput();
 
 
 
@@ -366,90 +580,8 @@ function updateWaves(delta){
 
 
 
-}
+    updateSpawning();
 
-/*==================================================
-    WAVE SPAWN CONNECTION
-==================================================*/
-
-
-function handleZombieSpawning(){
-
-
-
-    if(
-
-        waveManager.remainingToSpawn <= 0
-
-    )
-
-        return;
-
-
-
-    const amount = 1;
-
-
-
-    const stats = {
-
-
-        health:
-
-        waveManager.zombieHealthMultiplier,
-
-
-
-        damage:
-
-        waveManager.zombieDamageMultiplier,
-
-
-
-        speed:
-
-        waveManager.zombieSpeedMultiplier
-
-
-    };
-
-
-
-    zombieManager.spawnAroundPlayer(
-
-        player,
-
-        amount,
-
-        stats
-
-    );
-
-
-
-    waveManager.remainingToSpawn -= amount;
-
-
-    waveManager.totalZombies += amount;
-
-
-
-}
-
-
-
-/*==================================================
-    PLAYER + ZOMBIE UPDATE
-==================================================*/
-
-
-function updateEntities(delta){
-
-
-
-    /*
-        PLAYER UPDATE
-    */
 
 
     player.update(
@@ -458,11 +590,6 @@ function updateEntities(delta){
 
     );
 
-
-
-    /*
-        ZOMBIE UPDATE
-    */
 
 
     zombieManager.update(
@@ -475,12 +602,14 @@ function updateEntities(delta){
 
 
 
+    updateHUD();
+
+
+
 }
 
-
-
 /*==================================================
-    COLLISION HOOKS
+    COLLISION CHECK
 ==================================================*/
 
 
@@ -488,7 +617,7 @@ function checkCollisions(){
 
 
 
-    const nearbyZombie =
+    const zombie =
 
         zombieManager.getNearestZombie(
 
@@ -498,7 +627,7 @@ function checkCollisions(){
 
 
 
-    if(!nearbyZombie)
+    if(!zombie)
 
         return;
 
@@ -508,19 +637,9 @@ function checkCollisions(){
 
         player.position.distanceTo(
 
-            nearbyZombie.position
+            zombie.position
 
         );
-
-
-
-    /*
-        Future:
-        - melee attacks
-        - zombie attacks
-        - bullet collision
-        - vehicles
-    */
 
 
 
@@ -535,6 +654,7 @@ function checkCollisions(){
         );
 
 
+
     }
 
 
@@ -544,7 +664,53 @@ function checkCollisions(){
 
 
 /*==================================================
-    MAIN GAME LOOP
+    GAME STATE
+==================================================*/
+
+
+let gameOver=false;
+
+
+
+function checkGameOver(){
+
+
+
+    if(
+
+        player.health <= 0 &&
+
+        !gameOver
+
+    ){
+
+
+
+        gameOver=true;
+
+
+
+        hud.showGameOver();
+
+
+
+        console.log(
+
+            "GAME OVER"
+
+        );
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    MAIN LOOP
 ==================================================*/
 
 
@@ -566,62 +732,28 @@ function animate(){
 
 
 
-    /*
-        INPUT
-    */
-
-
-    updateInput();
+    if(!gameOver){
 
 
 
-    /*
-        WAVES
-    */
+        updateGame(
 
+            delta
 
-    updateWaves(
-
-        delta
-
-    );
+        );
 
 
 
-    /*
-        SPAWNING
-    */
-
-
-    handleZombieSpawning();
+        checkCollisions();
 
 
 
-    /*
-        ENTITIES
-    */
-
-
-    updateEntities(
-
-        delta
-
-    );
+        checkGameOver();
 
 
 
-    /*
-        COLLISION
-    */
+    }
 
-
-    checkCollisions();
-
-
-
-    /*
-        RENDER
-    */
 
 
     renderer.render(
@@ -633,463 +765,22 @@ function animate(){
     );
 
 
-}
-
-
-
-animate();
-
-/*==================================================
-    LIGHTING SYSTEM
-==================================================*/
-
-
-function createLights(){
-
-
-
-    const ambient = new THREE.AmbientLight(
-
-        0xffffff,
-
-        0.6
-
-    );
-
-
-
-    scene.add(
-
-        ambient
-
-    );
-
-
-
-    const sun = new THREE.DirectionalLight(
-
-        0xffffff,
-
-        1
-
-    );
-
-
-
-    sun.position.set(
-
-        100,
-
-        200,
-
-        100
-
-    );
-
-
-
-    sun.castShadow = true;
-
-
-
-    sun.shadow.mapSize.width = 2048;
-
-    sun.shadow.mapSize.height = 2048;
-
-
-
-    scene.add(
-
-        sun
-
-    );
-
 
 }
 
 
 
 /*==================================================
-    GAME STATE
+    START
 ==================================================*/
 
 
-const gameState = {
+console.log(
 
-
-    playing:true,
-
-
-    gameOver:false,
-
-
-    score:0,
-
-
-    kills:0
-
-
-
-};
-
-
-
-
-/*==================================================
-    HUD CONNECTION
-==================================================*/
-
-
-function updateHUD(){
-
-
-
-    /*
-        Future UI system:
-
-        - health bar
-        - ammo
-        - wave number
-        - zombie counter
-        - score
-
-    */
-
-
-
-    const info =
-
-        waveManager.getWaveInfo();
-
-
-
-    window.gameInfo = {
-
-
-        health:
-
-        player.health,
-
-
-
-        wave:
-
-        info.wave,
-
-
-
-        zombies:
-
-        zombieManager.getAliveCount(),
-
-
-
-        kills:
-
-        zombieManager.getKillCount()
-
-
-
-    };
-
-
-
-}
-
-
-
-/*==================================================
-    GAME OVER CHECK
-==================================================*/
-
-
-function checkGameState(){
-
-
-
-    if(
-
-        player.health <= 0
-
-    ){
-
-
-
-        gameState.playing=false;
-
-
-        gameState.gameOver=true;
-
-
-
-        console.log(
-
-            "GAME OVER"
-
-        );
-
-
-    }
-
-
-
-}
-
-
-
-/*==================================================
-    IMPROVED ENTITY LOOP
-==================================================*/
-
-
-function updateGame(delta){
-
-
-
-    if(!gameState.playing)
-
-        return;
-
-
-
-    updateInput();
-
-
-
-    updateWaves(
-
-        delta
-
-    );
-
-
-
-    handleZombieSpawning();
-
-
-
-    updateEntities(
-
-        delta
-
-    );
-
-
-
-    checkCollisions();
-
-
-
-    updateHUD();
-
-
-
-    checkGameState();
-
-
-
-}
-
-/*==================================================
-    DEBUG MODE
-==================================================*/
-
-
-const DEBUG = true;
-
-
-
-function debugInfo(){
-
-
-
-    if(!DEBUG)
-
-        return;
-
-
-
-    console.clear();
-
-
-
-    console.log(
-
-        "=== INFECTION: LAST STAND ==="
-
-    );
-
-
-
-    console.log(
-
-        "Wave:",
-
-        waveManager.currentWave
-
-    );
-
-
-
-    console.log(
-
-        "Alive Zombies:",
-
-        zombieManager.getAliveCount()
-
-    );
-
-
-
-    console.log(
-
-        "Kills:",
-
-        zombieManager.getKillCount()
-
-    );
-
-
-
-    console.log(
-
-        "Player HP:",
-
-        player.health
-
-    );
-
-
-
-}
-
-
-
-/*==================================================
-    RESTART GAME
-==================================================*/
-
-
-function restartGame(){
-
-
-
-    console.log(
-
-        "Restarting..."
-
-    );
-
-
-
-    player.reset();
-
-
-
-    zombieManager.reset();
-
-
-
-    waveManager.reset();
-
-
-
-    waveManager.start();
-
-
-
-    gameState.playing = true;
-
-
-    gameState.gameOver = false;
-
-
-
-}
-
-
-
-/*==================================================
-    LOADING HOOK
-==================================================*/
-
-
-function finishLoading(){
-
-
-
-    console.log(
-
-        "Game Loaded"
-
-    );
-
-
-
-    console.log(
-
-        "Survive the infection."
-
-    );
-
-
-}
-
-
-
-/*==================================================
-    CLEANUP
-==================================================*/
-
-
-function disposeGame(){
-
-
-
-    player.dispose();
-
-
-
-    zombieManager.dispose();
-
-
-
-    waveManager.dispose();
-
-
-
-    renderer.dispose();
-
-
-
-}
-
-
-
-/*==================================================
-    DEBUG TIMER
-==================================================*/
-
-
-setInterval(
-
-    ()=>{
-
-
-        debugInfo();
-
-
-    },
-
-    5000
+    "Infection: Last Stand Started"
 
 );
 
 
 
-/*==================================================
-    START GAME
-==================================================*/
-
-
-finishLoading();
+animate();
