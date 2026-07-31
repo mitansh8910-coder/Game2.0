@@ -2,7 +2,7 @@ import * as THREE from
 "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js";
 
 
-import { Zombie } from "./Zombie.js";
+import { Zombie } from "./entities/Zombie.js";
 
 
 
