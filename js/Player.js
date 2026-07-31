@@ -75,7 +75,7 @@ export class Player{
 
     /*==================================================*/
 
-       update(dt,input){
+       update(dt,input=this.input){
 
         if(!this.alive)return;
 
@@ -93,14 +93,17 @@ export class Player{
 
     /*==================================================*/
 
-    updateLook(input){
+   updateLook(input){
 
-        this.yaw-=input.mouse.dx*this.mouseSensitivity;
+    if(input.mouse){
 
-        this.pitch-=input.mouse.dy*this.mouseSensitivity;
+        this.yaw -= input.mouse.dx * this.mouseSensitivity;
 
-        const limit=Math.PI/2-0.05;
+        this.pitch -= input.mouse.dy * this.mouseSensitivity;
 
+    }
+
+    const limit=Math.PI/2-0.05;
         this.pitch=Math.max(
 
             -limit,
@@ -575,5 +578,9 @@ export class Player{
         this.weapon=null;
 
     }
+handleInput(input){
 
+    this.input = input;
+
+}
 }
