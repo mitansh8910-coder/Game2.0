@@ -105,7 +105,7 @@ const world = new World(
 );
 
 
-world.generate();
+
 
 
 
