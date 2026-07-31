@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infection: Last Stand</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <h1>INFECTION</h1>
+        <p>Last Stand</p>
+        <div id="loadingBar">
+            <div id="loadingProgress"></div>
+        </div>
+    </div>
+
+    <!-- Crosshair -->
+    <div id="crosshair">
+        <div class="horizontal"></div>
+        <div class="vertical"></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+
+        <div id="healthContainer">
+            <span>Health</span>
+            <div class="bar">
+                <div id="healthBar"></div>
+            </div>
+        </div>
+
+        <div id="staminaContainer">
+            <span>Stamina</span>
+            <div class="bar">
+                <div id="staminaBar"></div>
+            </div>
+        </div>
+
+        <div id="ammoContainer">
+            <span id="ammoText">15 / 15</span>
+        </div>
+
+        <div id="waveContainer">
+            Wave <span id="waveNumber">1</span>
+        </div>
+
+        <div id="populationContainer">
+            👨 Humans:
+            <span id="humanCount">50</span>
+
+            <br>
+
+            🧟 Zombies:
+            <span id="zombieCount">18</span>
+
+        </div>
+
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameOverScreen" class="hidden">
+
+        <h1>GAME OVER</h1>
+
+        <button id="restartButton">
+            Restart
+        </button>
+
+    </div>
+
+    <!-- Three.js Entry -->
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
