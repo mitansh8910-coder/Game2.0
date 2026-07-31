@@ -75,7 +75,7 @@ export class Player{
 
     /*==================================================*/
 
-    update(dt,input){
+       update(dt,input){
 
         if(!this.alive)return;
 
@@ -91,7 +91,6 @@ export class Player{
 
     }
 
-}
     /*==================================================*/
 
     updateLook(input){
